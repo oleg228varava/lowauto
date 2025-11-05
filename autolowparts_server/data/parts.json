@@ -1,0 +1,29 @@
+[
+  {
+    "id": "p1",
+    "title": "Повітряний фільтр Bosch",
+    "brand": "Bosch",
+    "price": 450,
+    "stock": 12,
+    "description": "Оригінальний повітряний фільтр для широкого спектру моделей.",
+    "image": "https://via.placeholder.com/300x200.png?text=Filter+Bosch"
+  },
+  {
+    "id": "p2",
+    "title": "Гальмівні колодки передні",
+    "brand": "ATE",
+    "price": 1200,
+    "stock": 5,
+    "description": "Набір передніх гальмівних колодок, високий ресурс.",
+    "image": "https://via.placeholder.com/300x200.png?text=Brake+Pads"
+  },
+  {
+    "id": "p3",
+    "title": "Свічка запалювання NGK",
+    "brand": "NGK",
+    "price": 180,
+    "stock": 50,
+    "description": "Стандартна свічка запалювання для бензинових двигунів.",
+    "image": "https://via.placeholder.com/300x200.png?text=Spark+Plug"
+  }
+]
