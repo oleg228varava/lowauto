@@ -1,0 +1,5 @@
+Запуск сервера:
+
+В папці autolowparts_server:
+
+fastapi dev main.py
