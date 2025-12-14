@@ -5,6 +5,8 @@ import '../providers/cart_provider.dart';
 import '../floating_message.dart';
 import '../widgets/part_card.dart';
 import 'part_detail_page.dart';
+import '../providers/settings_provider.dart';
+import '../utils/currency_service.dart';
 
 class CatalogPage extends StatefulWidget {
   const CatalogPage({Key? key}) : super(key: key);
@@ -13,13 +15,31 @@ class CatalogPage extends StatefulWidget {
   State<CatalogPage> createState() => _CatalogPageState();
 }
 
+// ======================= Custom Text Widget =======================
+class T extends StatelessWidget {
+  final String text;
+  final TextStyle? style;
+  final TextAlign? textAlign;
+
+  const T(this.text, {super.key, this.style, this.textAlign});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+    return Text(
+      settings.tr(text),
+      style: style,
+      textAlign: textAlign,
+    );
+  }
+}
+
 class _CatalogPageState extends State<CatalogPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Part> allParts = [];
   List<Part> filteredParts = [];
   int itemsToShow = 6;
 
-  // Фільтри
   List<String> selectedCategories = [];
   List<String> selectedBrands = [];
   RangeValues priceRange = const RangeValues(0, 1000);
@@ -30,6 +50,9 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   void initState() {
     super.initState();
+    CurrencyService.fetchRates().then((_) {
+      setState(() {});
+    });
     allParts = _generateParts();
     filteredParts = List.from(allParts);
     _searchController.addListener(_applyFilter);
@@ -48,15 +71,11 @@ class _CatalogPageState extends State<CatalogPage> {
         final matchesQuery = query.isEmpty ||
             p.title.toLowerCase().contains(query) ||
             p.brand.toLowerCase().contains(query);
-
         final matchesCategory = selectedCategories.isEmpty ||
             selectedCategories.contains(p.category);
-
         final matchesBrand = selectedBrands.isEmpty ||
             selectedBrands.contains(p.brand);
-
         final matchesPrice = p.price >= priceRange.start && p.price <= priceRange.end;
-
         return matchesQuery && matchesCategory && matchesBrand && matchesPrice;
       }).toList();
       itemsToShow = 6;
@@ -90,10 +109,6 @@ class _CatalogPageState extends State<CatalogPage> {
     });
   }
 
-  void _openFilterDrawer() {
-    Scaffold.of(context).openDrawer();
-  }
-
   void _resetFilters() {
     setState(() {
       selectedCategories.clear();
@@ -107,7 +122,7 @@ class _CatalogPageState extends State<CatalogPage> {
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context, listen: false);
     final theme = Theme.of(context);
-
+    final settings = Provider.of<SettingsProvider>(context);
     final showParts = filteredParts.take(itemsToShow).toList();
 
     return Scaffold(
@@ -118,23 +133,21 @@ class _CatalogPageState extends State<CatalogPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Фільтри", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                T("Фільтри", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                const Text("Категорії", style: TextStyle(fontWeight: FontWeight.bold)),
+                T("Категорії", style: const TextStyle(fontWeight: FontWeight.bold)),
                 Wrap(
                   spacing: 8,
                   children: categories.map((cat) {
                     final isSelected = selectedCategories.contains(cat);
                     return FilterChip(
-                      label: Text(cat),
+                      label: T(cat),
                       selected: isSelected,
                       onSelected: (val) {
                         setState(() {
-                          if (val) {
-                            selectedCategories.add(cat);
-                          } else {
-                            selectedCategories.remove(cat);
-                          }
+                          if (val) selectedCategories.add(cat);
+                          else selectedCategories.remove(cat);
                           _applyFilter();
                         });
                       },
@@ -142,21 +155,18 @@ class _CatalogPageState extends State<CatalogPage> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                const Text("Бренди", style: TextStyle(fontWeight: FontWeight.bold)),
+                T("Бренди", style: const TextStyle(fontWeight: FontWeight.bold)),
                 Wrap(
                   spacing: 8,
                   children: brands.map((brand) {
                     final isSelected = selectedBrands.contains(brand);
                     return FilterChip(
-                      label: Text(brand),
+                      label: T(brand),
                       selected: isSelected,
                       onSelected: (val) {
                         setState(() {
-                          if (val) {
-                            selectedBrands.add(brand);
-                          } else {
-                            selectedBrands.remove(brand);
-                          }
+                          if (val) selectedBrands.add(brand);
+                          else selectedBrands.remove(brand);
                           _applyFilter();
                         });
                       },
@@ -164,7 +174,7 @@ class _CatalogPageState extends State<CatalogPage> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                const Text("Ціна", style: TextStyle(fontWeight: FontWeight.bold)),
+                T("Ціна", style: const TextStyle(fontWeight: FontWeight.bold)),
                 RangeSlider(
                   values: priceRange,
                   min: 0,
@@ -184,14 +194,14 @@ class _CatalogPageState extends State<CatalogPage> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _resetFilters,
-                        child: const Text("Скинути"),
+                        child: T("Скинути"),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text("Застосувати"),
+                        child: T("Застосувати"),
                       ),
                     ),
                   ],
@@ -201,11 +211,10 @@ class _CatalogPageState extends State<CatalogPage> {
           ),
         ),
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: Builder(
         builder: (context) => Stack(
           children: [
-            // Градієнтний фон
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -227,7 +236,6 @@ class _CatalogPageState extends State<CatalogPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      // Пошук + кнопка фільтр
                       Row(
                         children: [
                           Expanded(
@@ -240,7 +248,7 @@ class _CatalogPageState extends State<CatalogPage> {
                                 controller: _searchController,
                                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                                 decoration: InputDecoration(
-                                  hintText: 'Пошук товарів',
+                                  hintText: settings.tr('Пошук товарів'),
                                   hintStyle: theme.inputDecorationTheme.hintStyle,
                                   prefixIcon: Icon(Icons.search, color: theme.textTheme.bodySmall?.color),
                                   border: OutlineInputBorder(
@@ -267,13 +275,8 @@ class _CatalogPageState extends State<CatalogPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Рекомендовано вам
-                      Text(
-                        'Рекомендовано вам',
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
+                      T('Рекомендовано вам', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      // Список товарів
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -289,7 +292,7 @@ class _CatalogPageState extends State<CatalogPage> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: theme.colorScheme.primary,
                                     ),
-                                    child: const Text('Завантажити ще'),
+                                    child: T('Завантажити ще'),
                                   ),
                                 ),
                               );
@@ -297,7 +300,6 @@ class _CatalogPageState extends State<CatalogPage> {
                               return const SizedBox.shrink();
                             }
                           }
-
                           final part = showParts[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
@@ -306,7 +308,7 @@ class _CatalogPageState extends State<CatalogPage> {
                               onOpen: () => _openPartDetails(part),
                               onAdd: () {
                                 cart.addToCart(part);
-                                showFloatingMessage(context, 'Товар додано до кошика');
+                                showFloatingMessage(context, settings.tr('Товар додано до кошика'));
                               },
                             ),
                           );

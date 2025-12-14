@@ -7,11 +7,11 @@ class PartCard extends StatelessWidget {
   final VoidCallback onAdd;
 
   const PartCard({
-    Key? key,
+    super.key,
     required this.part,
     required this.onOpen,
     required this.onAdd,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,36 +35,29 @@ class PartCard extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: colorScheme.background,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: part.images.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Icon(
-                          Icons.car_repair,
-                          size: 60,
-                          color: colorScheme.onSurface.withOpacity(0.5),
-                        ),
-                      )
-                    : Icon(
-                        Icons.car_repair,
-                        size: 60,
-                        color: colorScheme.onSurface.withOpacity(0.3),
-                      ),
+                child: Icon(
+                  Icons.car_repair,
+                  size: 60,
+                  color: colorScheme.onSurface.withOpacity(0.3),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Назва запчастини
+                    // Назва
                     Text(
                       part.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyLarge
-                          ?.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     // Бренд
@@ -82,11 +75,13 @@ class PartCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Ціна
+                        // Відображення базової ціни
                         Text(
-                          '${part.price.toInt()} ₴',
-                          style: theme.textTheme.bodyLarge
-                              ?.copyWith(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                          '${part.price.toStringAsFixed(2)} UAH',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         // Кнопка додати в кошик
                         SizedBox(

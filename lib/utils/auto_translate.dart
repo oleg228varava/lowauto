@@ -4,121 +4,122 @@ import '../providers/settings_provider.dart';
 
 class AutoTranslate extends StatelessWidget {
   final Widget child;
-
-  const AutoTranslate({required this.child, super.key});
+  const AutoTranslate({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-    return _translateRecursive(child, settings);
+    final settings = context.watch<SettingsProvider>();
+    return _t(child, settings);
   }
 }
 
-Widget _translateRecursive(Widget widget, SettingsProvider settings) {
-  // ---------- Text ----------
-  if (widget is Text) {
+Widget _t(Widget w, SettingsProvider s) {
+  // ---------- TEXT ----------
+  if (w is Text && w.data != null) {
     return Text(
-      settings.tr(widget.data ?? ''),
-      style: widget.style,
-      textAlign: widget.textAlign,
-      maxLines: widget.maxLines,
-      overflow: widget.overflow,
+      s.tr(w.data!),
+      key: w.key,
+      style: w.style,
+      textAlign: w.textAlign,
+      maxLines: w.maxLines,
+      overflow: w.overflow,
     );
   }
 
-  // ---------- RichText ----------
-  if (widget is RichText) return widget;
+  // ---------- APPBAR ----------
+  if (w is AppBar) {
+    return AppBar(
+      key: w.key,
+      title: w.title == null ? null : _t(w.title!, s),
+      actions: w.actions,
+      backgroundColor: w.backgroundColor,
+      elevation: w.elevation,
+      leading: w.leading,
+    );
+  }
 
-  // ---------- Column ----------
-  if (widget is Column) {
+  // ---------- LIST TILE ----------
+  if (w is ListTile) {
+    return ListTile(
+      key: w.key,
+      leading: w.leading,
+      title: w.title == null ? null : _t(w.title!, s),
+      subtitle: w.subtitle == null ? null : _t(w.subtitle!, s),
+      trailing: w.trailing,
+      onTap: w.onTap,
+    );
+  }
+
+  // ---------- BUTTONS ----------
+  if (w is ElevatedButton) {
+    return ElevatedButton(
+      key: w.key,
+      onPressed: w.onPressed,
+      style: w.style,
+      child: _t(w.child!, s),
+    );
+  }
+
+  if (w is TextButton) {
+    return TextButton(
+      key: w.key,
+      onPressed: w.onPressed,
+      child: _t(w.child!, s),
+    );
+  }
+
+  if (w is OutlinedButton) {
+    return OutlinedButton(
+      key: w.key,
+      onPressed: w.onPressed,
+      child: _t(w.child!, s),
+    );
+  }
+
+  // ---------- COLUMN / ROW ----------
+  if (w is Column) {
     return Column(
-      key: widget.key,
-      mainAxisAlignment: widget.mainAxisAlignment,
-      crossAxisAlignment: widget.crossAxisAlignment,
-      mainAxisSize: widget.mainAxisSize,
-      children: widget.children
-          .map((c) => _translateRecursive(c, settings))
-          .toList(),
+      key: w.key,
+      mainAxisAlignment: w.mainAxisAlignment,
+      crossAxisAlignment: w.crossAxisAlignment,
+      children: w.children.map((c) => _t(c, s)).toList(),
     );
   }
 
-  // ---------- Row ----------
-  if (widget is Row) {
+  if (w is Row) {
     return Row(
-      key: widget.key,
-      mainAxisAlignment: widget.mainAxisAlignment,
-      crossAxisAlignment: widget.crossAxisAlignment,
-      mainAxisSize: widget.mainAxisSize,
-      children: widget.children
-          .map((c) => _translateRecursive(c, settings))
-          .toList(),
+      key: w.key,
+      mainAxisAlignment: w.mainAxisAlignment,
+      crossAxisAlignment: w.crossAxisAlignment,
+      children: w.children.map((c) => _t(c, s)).toList(),
     );
   }
 
-  // ---------- ListView ----------
-  if (widget is ListView &&
-      widget.childrenDelegate is SliverChildListDelegate) {
-    final delegate =
-        widget.childrenDelegate as SliverChildListDelegate;
-
-    return ListView(
-      key: widget.key,
-      padding: widget.padding,
-      scrollDirection: widget.scrollDirection,
-      reverse: widget.reverse,
-      controller: widget.controller,
-      shrinkWrap: widget.shrinkWrap,
-      children: delegate.children
-          .map((c) => _translateRecursive(c, settings))
-          .toList(),
-    );
-  }
-
-  // ---------- Padding ----------
-  if (widget is Padding) {
+  // ---------- PADDING ----------
+  if (w is Padding && w.child != null) {
     return Padding(
-      key: widget.key,
-      padding: widget.padding,
-      child: widget.child == null
-          ? const SizedBox()
-          : _translateRecursive(widget.child!, settings),
+      key: w.key,
+      padding: w.padding,
+      child: _t(w.child!, s),
     );
   }
 
-  // ---------- Container ----------
-  if (widget is Container) {
-    return Container(
-      key: widget.key,
-      padding: widget.padding,
-      margin: widget.margin,
-      decoration: widget.decoration,
-      child: widget.child == null
-          ? null
-          : _translateRecursive(widget.child!, settings),
+  // ---------- CENTER ----------
+  if (w is Center && w.child != null) {
+    return Center(key: w.key, child: _t(w.child!, s));
+  }
+
+  // ---------- SCAFFOLD ----------
+  if (w is Scaffold) {
+    return Scaffold(
+      key: w.key,
+      appBar: w.appBar == null ? null : _t(w.appBar!, s) as PreferredSizeWidget,
+      body: w.body == null ? null : _t(w.body!, s),
+      drawer: w.drawer,
+      bottomNavigationBar: w.bottomNavigationBar,
+      backgroundColor: w.backgroundColor,
     );
   }
 
-  // ---------- Center ----------
-  if (widget is Center) {
-    return Center(
-      key: widget.key,
-      child: widget.child == null
-          ? null
-          : _translateRecursive(widget.child!, settings),
-    );
-  }
-
-  // ---------- SizedBox ----------
-  if (widget is SizedBox) {
-    return SizedBox(
-      key: widget.key,
-      width: widget.width,
-      height: widget.height,
-      child: widget.child == null
-          ? null
-          : _translateRecursive(widget.child!, settings),
-    );
-  }
-
-  return widget;
+  return w;
 }
